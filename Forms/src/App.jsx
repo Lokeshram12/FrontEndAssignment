@@ -1,34 +1,41 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 function App() {
   const [formData, setFormData] = useState({
     name: '',
     email: ''
   });
-
+  const [message,setMessage]=useState('');
+  const [error,setError]=useState('');
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.name.trim() === '' || !validateEmail(formData.email)) {
-      console.log('Please enter valid name and email.');
-    } else {
-      console.log('Form submitted:', formData);
+    try {
+      const response = await axios.post('http://localhost:5000/api/register', formData);
+      if (response.data.success) {
+        console.log('Registration successful:', response.data);
+        
+        setMessage(response.data.message)
+        setError('')
+       
+      } else {
+        console.log('Registration failed:', response.data.message);
+        setError(response.data.message);
+        setMessage('')
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      // Show error message to the user
     }
   };
-
-  const validateEmail = (email) => {
-    //validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
+  
   return (
     <div className="App">
-      <div>This is a form
       <form onSubmit={handleSubmit}>
         <label>
           Name:
@@ -52,7 +59,8 @@ function App() {
         <br />
         <button type="submit">Submit</button>
       </form>
-      </div>
+          <p>{message}</p>
+          <p>{error}</p>
     </div>
   );
 }
